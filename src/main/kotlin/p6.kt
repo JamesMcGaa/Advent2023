@@ -12,7 +12,7 @@ fun run(isPartB: Boolean) {
     val times = if (isPartB) mutableListOf(timeStr.replace(" ", "").toLong())
                 else timeStr.split(" ").filter { it.isNotBlank() }.map { it.toLong() }
     val distances = if (isPartB) mutableListOf(distStr.replace(" ", "").toLong())
-                    else distStr.split(" ").filter { it.isNotBlank() }.map { it.toLong() } q
+                    else distStr.split(" ").filter { it.isNotBlank() }.map { it.toLong() }
 
     val validTimes = mutableListOf<Int>()
     times.forEachIndexed { index, time ->
