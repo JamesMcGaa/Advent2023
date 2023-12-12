@@ -21,7 +21,7 @@ fun main() {
         val right = it.substring(12, 14 + 1)
         GRAPH[start] = Node(start, left, right)
     }
-    println(GRAPH)
+    println("Graph: ${GRAPH}")
 
     var MATH = mutableListOf<Pair<Long, Long>>()
     var counterB = 0L
@@ -33,9 +33,9 @@ fun main() {
         currentGhosts.forEach { ghost ->
             val newCurrent = if (move == 'L') GRAPH[ghost.current]!!.left else GRAPH[ghost.current]!!.right
             val newSeenEntry = Pair(newCurrent, moveIdx)
-            if (ghost.seen.contains(newSeenEntry)) { // Loop detected
+            if (ghost.seen.contains(newSeenEntry) && newCurrent.endsWith('Z')) { // Loop detected
                 MATH.add(Pair(counterB, counterB - ghost.seen[newSeenEntry]!!))
-                println("${counterB}, ${counterB - ghost.seen[newSeenEntry]!!}")
+                println("Cycle Detected: ${counterB}, ${counterB - ghost.seen[newSeenEntry]!!}")
             } else { // Update the ghost and keep looking for a loop
                 ghost.seen[newSeenEntry] = counterB
                 ghost.current = newCurrent
@@ -45,7 +45,7 @@ fun main() {
         currentGhosts = newGhosts
         counterB += 1
     }
-    println(MATH)
+    println("Raw Math: ${MATH}")
 
 //    var MATH = mutableListOf(
 //        Pair(12086L, 12083L),
@@ -58,7 +58,7 @@ fun main() {
     MATH = MATH.map {
         Pair(it.first % it.second, it.second)
     }.toMutableList()
-    println(MATH)
+    println("PROCESSED Math: ${MATH}")
 
     var current = MATH.first().first
     var lcm = MATH.first().second
