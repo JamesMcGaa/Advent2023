@@ -47,7 +47,7 @@ fun main() {
 
     var counterA = 0
     for (planet in PLANETS){
-        for (otherPlanet in PLANETS) {
+        for (otherPlanet in PLANETS) { // Trick: Manhattan distance
             counterA += abs(planet.first - otherPlanet.first)
             counterA += abs(planet.second - otherPlanet.second)
         }

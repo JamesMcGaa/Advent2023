@@ -1,11 +1,18 @@
 import java.io.File
 
+
+/**
+ * - One speedrunner used Lagrange interpolation
+ *
+ * - One used FindSequenceFunction in Wolfram LOL
+ */
+
 fun main() {
     var counterA = 0
     var counterB = 0
     File("inputs/input9.txt").forEachLine { line ->
         counterA += forecast(line.split(" ").map { it.toInt() }.toMutableList())
-        counterB += forecast(line.split(" ").reversed().map { it.toInt() }.toMutableList())
+        counterB += forecast(line.split(" ").reversed().map { it.toInt() }.toMutableList()) // Clever reverse input trick
     }
     println(counterA)
     println(counterB)

@@ -1,5 +1,9 @@
 import java.io.File
 
+/**
+ * - One speedrunner just plugged this into the quadratic formula via Wolfram LOL
+ */
+
 fun main() {
     run(false)
     run(true)
