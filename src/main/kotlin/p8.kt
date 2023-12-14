@@ -47,6 +47,7 @@ fun main() {
                 newGhosts.add(ghost)
             }
         }
+        counterB += 1
         currentGhosts = newGhosts
     }
     println("Raw Math: ${MATH}")
@@ -55,6 +56,7 @@ fun main() {
     println("Processed Math: ${newMath}")
 
     println(lcm(newMath.map { it.second }))
+
     /*
      * Note that from here we could do things iteratively, however by noting that the results of the math indicate that
      * they all move in cycles of 0 .. C_i starting from the very beginning
@@ -85,7 +87,7 @@ fun gcd(a: Long, b: Long): Long {
         B = A % B
         A = temp
     }
-    return a
+    return A
 }
 
 private fun lcm(a: Long, b: Long): Long {
