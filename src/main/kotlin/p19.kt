@@ -9,6 +9,14 @@ data class Part(
     val ratingNumber = x + m + a + s
 }
 
+data class PartRange(
+    val xRange: Pair<Int, Int>,
+    val mRange: Pair<Int, Int>,
+    val aRange: Pair<Int, Int>,
+    val sRange: Pair<Int, Int>,
+    var currentWorkflow: String
+)
+
 data class Workflow(
     val identifier: String,
     val conditions: List<Conditional>,
@@ -47,6 +55,24 @@ data class Conditional(
             else -> throw Exception("Bad Category")
         }
     }
+
+//    fun bisectRange(range: PartRange): Pair<PartRange, PartRange> {
+//        when(category) {
+//            'x' -> {
+//                return if (ineq == '>') part.x > comparison else part.x < comparison
+//            }
+//            'm' -> {
+//                return if (ineq == '>') part.m > comparison else part.m < comparison
+//            }
+//            'a' -> {
+//                return if (ineq == '>') part.a > comparison else part.a < comparison
+//            }
+//            's' -> {
+//                return if (ineq == '>') part.s > comparison else part.s < comparison
+//            }
+//            else -> throw Exception("Bad Category")
+//        }
+//    }
 }
 
 fun strToConditional(input: String): Conditional {
@@ -106,5 +132,34 @@ fun main() {
     }
     println(counterA)
 
+    // Part B
+
+    val successSet = mutableSetOf<PartRange>()
+    val partRanges = mutableListOf<PartRange>(PartRange(
+        Pair(1,4000),
+        Pair(1,4000),
+        Pair(1,4000),
+        Pair(1,4000),
+        "in"
+    ))
+    while (partRanges.isNotEmpty()) {
+        val currentRange = partRanges.removeLast()
+
+        if (currentRange.currentWorkflow == "A") {
+            successSet.add(currentRange)
+            continue
+        }
+        if (currentRange.currentWorkflow == "R") {
+            continue
+        }
+
+        val currentWorkflow = workFlows[currentRange.currentWorkflow]!!
+        for (condition in currentWorkflow.conditions) {
+
+        }
+
+    }
+
     return
+
 }
