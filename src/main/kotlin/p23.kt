@@ -1,28 +1,47 @@
 import java.io.File
 import kotlin.math.max
-import kotlin.math.min
 
+data class GraphNode(
+    var adj: List<Node>
+)
 data class TrailExplorer(
     val current: GraphCoord,
     val seen: Set<GraphCoord>,
 ) {
-    fun getNeighbors(grid: Map<GraphCoord, Char>): List<TrailExplorer> {
+    fun getNeighbors(
+        grid: Map<GraphCoord, Char>,
+        isPartB: Boolean = false,
+        setGrid: Set<GraphCoord> = setOf()
+    ): List<TrailExplorer> {
         val ret = mutableListOf<TrailExplorer>()
 
-        val offsets = when (grid[current]) {
-            '>' -> mutableListOf(GraphCoord(0, 1))
-            '<' -> mutableListOf(GraphCoord(0, -1))
-            '^' -> mutableListOf(GraphCoord(-1, 0))
-            'v' -> mutableListOf(GraphCoord(1, 0))
-            else -> mutableListOf(
-                GraphCoord(0, 1), GraphCoord(0, -1), GraphCoord(1, 0), GraphCoord(-1, 0)
-            )
-        }
+        val offsets =
+            if (isPartB) {
+                mutableListOf(
+                    GraphCoord(0, 1), GraphCoord(0, -1), GraphCoord(1, 0), GraphCoord(-1, 0)
+                )
+            } else {
+                when (grid[current]) {
+                    '>' -> mutableListOf(GraphCoord(0, 1))
+                    '<' -> mutableListOf(GraphCoord(0, -1))
+                    '^' -> mutableListOf(GraphCoord(-1, 0))
+                    'v' -> mutableListOf(GraphCoord(1, 0))
+                    else -> mutableListOf(
+                        GraphCoord(0, 1), GraphCoord(0, -1), GraphCoord(1, 0), GraphCoord(-1, 0)
+                    )
+                }
+            }
 
         for (offset in offsets) {
             var potential = GraphCoord(current.x + offset.x, current.y + offset.y)
-            if (setOf('.', '^', 'v', '<', '>').contains(grid[potential]) && !seen.contains(potential)) {
-                ret.add(this.copy(current = potential, seen = seen.toMutableSet().apply { add(potential) }))
+            if (!isPartB) {
+                if (setOf('.', '^', 'v', '<', '>').contains(grid[potential]) && !seen.contains(potential)) {
+                    ret.add(this.copy(current = potential, seen = seen.toMutableSet().apply { add(potential) }))
+                }
+            } else {
+                if (setGrid.contains(potential) && !seen.contains(potential)) {
+                    ret.add(this.copy(current = potential, seen = seen.toMutableSet().apply { add(potential) }))
+                }
             }
         }
         return ret
@@ -42,11 +61,6 @@ class BridgeFinder {
     val gridB = mutableSetOf<GraphCoord>()
 
     lateinit var bannedNode: GraphCoord
-
-//    val visited = mutableSetOf<GraphCoord>()
-//    val tin = mutableMapOf<GraphCoord, Int>()
-//    val low = mutableMapOf<GraphCoord, Int>()
-//    var timer = 0
 
     init {
         val input = File("inputs/input23.txt").readLines()
@@ -70,20 +84,102 @@ class BridgeFinder {
         val dominators = mutableSetOf<GraphCoord>()
         for (v in gridB) {
             bannedNode = v
-            if (dfsWithBanned()) {
+            if (!dfsWithBanned()) {
                 dominators.add(v)
             }
         }
 
+        val trueDominators = mutableListOf<GraphCoord>()
+        for (v in dominators) {
+            val neighbors = v.getNeighborsUnfiltered().filter { gridB.contains(it) }
+            if (!(neighbors.size == 2 && neighbors.filter { dominators.contains(it) }.size == 2)) {
+                trueDominators.add(v)
+            }
+        }
+
+        val ordered = bfs()
+        trueDominators.sortedBy { ordered.indexOf(it) }
+        println(trueDominators)
+
         println(gridB.size)
         println(dominators.size)
+        println(trueDominators.size)
 
-//        for (v in gridB) {
-//            tin[v] = -1
-//            low[v] = -1
-//        }
-//        println(gridB.size)
-//        dfs(start, null)
+        val vertexToDominator = mutableMapOf<GraphCoord, Set<GraphCoord>>()
+        for (v in gridB) {
+            vertexToDominator[v] = findDominators(trueDominators.toSet(), v)
+        }
+        val dominatorToVertex = mutableMapOf<GraphCoord, Set<GraphCoord>>()
+        for (trueDominator in trueDominators) {
+            dominatorToVertex[trueDominator] =
+                vertexToDominator.keys.filter { vertexToDominator[it]!!.contains(trueDominator) }.toSet()
+        }
+        println(vertexToDominator)
+        println(dominatorToVertex)
+
+        var counterB = 0
+        for (i in 0..trueDominators.lastIndex - 1) {
+            counterB += generalizedDist(
+                trueDominators[i]!!,
+                trueDominators[i + 1]!!,
+                dominatorToVertex[trueDominators[i]!!]!! union dominatorToVertex[trueDominators[i + 1]!!]!!
+            )
+        }
+
+        println(counterB - (trueDominators.size - 2))
+
+        println(generalizedDist(start, end, gridB) - 1)
+    }
+
+    fun generalizedDist(a: GraphCoord, b: GraphCoord, grid: Set<GraphCoord>): Int {
+        val stack = mutableListOf(TrailExplorer(a, setOf<GraphCoord>(a)))
+        var longestSoFar = 0
+        while (stack.isNotEmpty()) {
+            val current = stack.removeLast()
+            if (current.current == b) {
+                longestSoFar = max(longestSoFar, current.seen.size)
+                continue
+            }
+            stack.addAll(current.getNeighbors(mutableMapOf<GraphCoord, Char>(), true, grid))
+        }
+        return longestSoFar
+    }
+
+    fun findDominators(dominators: Set<GraphCoord>, begin: GraphCoord): Set<GraphCoord> {
+        val queue = mutableListOf(begin)
+        val seen = mutableListOf<GraphCoord>()
+        val adj = mutableSetOf<GraphCoord>()
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (dominators.contains(current)) {
+                adj.add(current)
+                continue
+            } else if (!gridB.contains(current) || seen.contains(current)) {
+                continue
+            } else {
+                seen.add(current)
+                queue.addAll(current.getNeighborsUnfiltered().filter { gridB.contains(it) })
+            }
+        }
+        return adj
+    }
+
+    fun bfs(): List<GraphCoord> {
+        val queue = mutableListOf(start)
+        val seen = mutableListOf<GraphCoord>()
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (current == end) {
+                return seen
+            } else if (!gridB.contains(current) || seen.contains(current)) {
+                continue
+            } else {
+                seen.add(current)
+                queue.addAll(current.getNeighborsUnfiltered().filter { gridB.contains(it) })
+            }
+
+        }
+        throw Exception("Didnt find end in bfs")
     }
 
     fun dfsWithBanned(): Boolean {
@@ -104,32 +200,6 @@ class BridgeFinder {
         return false
     }
 
-//    fun dfs(v: GraphCoord, p: GraphCoord?) {
-//        if (visited.contains(v)) {
-//            return
-//        }
-//        visited.add(v)
-////        println(visited.size)
-//        tin[v] = timer
-//        low[v] = timer
-//        timer++
-//
-//        val neighbors =  v.getNeighborsUnfiltered().filter { gridB.contains(it) }
-//        for (to in neighbors) {
-//            if (to == p) {
-//                continue
-//            }
-//            if (visited.contains(to)) {
-//                low[v] = min(low[v]!!, tin[to]!!)
-//            } else {
-//                dfs(to, v)
-//                low[v] = min(low[v]!!, tin[to]!!)
-//                if(low[to]!! > tin[v]!!) {
-//                    println(v)
-//                }
-//            }
-//        }
-//    }
 
     fun solveA() {
         val stack = mutableListOf(TrailExplorer(start, setOf<GraphCoord>()))
