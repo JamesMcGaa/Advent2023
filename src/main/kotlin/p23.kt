@@ -119,5 +119,17 @@ class BridgeFinder {
         }
         println(maxSoFar)
     }
-
 }
+
+/**
+ * For this problem I needed to consult the reddit similar to p12
+ *
+ * Most people suggested using the compressing the chains (i.e.) DFSing only the intersections as I did here
+ *
+ * Others noted that Longest Path is NP-Hard and just brute forced in a more performant language
+ *
+ * Some people used heuristics
+ *
+ * In my original strategy I did try something similar - I tried to get things down to dominators and bridges and calculate
+ * pairwise distance between them. This was overly complicated however, and I still ran into long runtimes
+ */
