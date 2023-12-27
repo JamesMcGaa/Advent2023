@@ -28,8 +28,6 @@ data class Walk(
 
     val reflected = ReflectedCoord(current.x, current.y, xReflection, yReflection)
 
-//    val hashCode: String = current.toString() + xReflection.toString() + ":" + yReflection.toString()
-
     fun getNeighbors(grid: Map<GraphCoord, Char>): List<Walk> {
 
         val ret = mutableListOf<Walk>()
@@ -88,20 +86,35 @@ fun main() {
         )
     )
 
-    var safelyVisited = mutableSetOf<ReflectedCoord>(ReflectedCoord(start.x, start.y, 0, 0))
-
-    repeat(10000) {
+    val walkIdxToCount = mutableMapOf<Int, Int>()
+    val base = 65 // Time to fill full grid
+    val period = 131 // Time grid width
+    for (i in 1..base + 2 * period) {
         val nextWalks = mutableSetOf<Walk>()
         for (walk in walks) {
-            safelyVisited.add(walk.reflected)
             for (neighbor in walk.getNeighbors(grid)) {
-                if (!safelyVisited.contains(neighbor.reflected)) {
                     nextWalks.add(neighbor)
-                }
             }
         }
         walks = nextWalks
+        walkIdxToCount[i] = walks.size
     }
 
-    println(safelyVisited.size)
+    println(walkIdxToCount[base])
+    println(walkIdxToCount[base + period])
+    println(walkIdxToCount[base + 2 * period])
+
+    // {3738, 33270, 92194}
+    // 3738 + 14836 x + 14696 x^2
 }
+
+/**
+ * Note that the input is just a nice diamond shape, thus it must repeat in a nice pattern
+ *
+ * Note 26501365 = 202300 * 131 + 65
+ *
+ * Thus be solving for x = 0,1,2 corresponding to base, base + period, base + 2*period steps we determine a quadratic,
+ * x = 202300 gives us our final answer
+ *
+ * This required a lot of help - many others found a lot of observations that lead to this clean recurrence
+ */
