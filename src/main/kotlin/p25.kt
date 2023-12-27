@@ -2,8 +2,10 @@ import java.io.File
 
 data class WirePath(
     val current: String,
-    val seen: MutableSet<String> = mutableSetOf()
+    val seen: MutableSet<String> = mutableSetOf(),
+    var parent: String = ""
 )
+
 fun main() {
     val adj = mutableMapOf<String, MutableSet<String>>()
     File("inputs/input25.txt").forEachLine {
@@ -22,6 +24,7 @@ fun main() {
     }
 
     val goodPaths = mutableListOf<MutableSet<String>>()
+
 
 
 
