@@ -12,6 +12,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("org.jetbrains.kotlinx:multik-core:0.2.2")
+    implementation("org.jetbrains.kotlinx:multik-default:0.2.2")
+
 }
 
 tasks.test {
