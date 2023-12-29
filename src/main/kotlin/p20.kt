@@ -31,12 +31,30 @@ fun main() {
         }
     }
 
-    for (i in 1..1000) {
+    // Part A
+//    for (i in 1..1000) {
+//        Module.pushButton()
+//    }
+//    println(Signal.LOW_COUNT)
+//    println(Signal.HIGH_COUNT)
+//    println(Signal.LOW_COUNT * Signal.HIGH_COUNT)
+
+    // Part B
+    for(i in 0..100000) {
         Module.pushButton()
     }
-    println(Signal.LOW_COUNT)
-    println(Signal.HIGH_COUNT)
-    println(Signal.LOW_COUNT * Signal.HIGH_COUNT)
+    println(
+        Module.PENULTIMATE_TO_SUCCEEDING_FREQ.map {
+            val acceptables = it.value
+            val key = it.key
+            val ret = mutableListOf<Long>()
+            for (i in 0 .. acceptables.lastIndex - 1) {
+                ret.add(acceptables[i+1] - acceptables[i])
+            }
+            ret.toSet()
+        }
+    )
+    // The LCM of these values is how we obtain the answer
 }
 
 
@@ -66,16 +84,30 @@ interface Module {
     val name: String
     val dests: List<String>
     fun processSignal(signal: Signal) {
-//        if (name == "rx") {
-//            if (signal.polarity == SignalPolarity.LOW)
+//        if (mutableListOf("vg","kp","gc","tx").contains(name)) {
+//            if (signal.polarity == SignalPolarity.LOW) {
+//                println("Name ${name}, Button Count ${Module.BUTTON_COUNT}")
+//            }
 //        }
+        if (mutableListOf("bq").contains(name)) {
+            if (signal.polarity == SignalPolarity.HIGH) {
+                println("Name ${signal.from}, Button Count ${Module.BUTTON_COUNT}")
+                if (PENULTIMATE_TO_SUCCEEDING_FREQ[signal.from] == null){
+                    PENULTIMATE_TO_SUCCEEDING_FREQ[signal.from] = mutableListOf()
+                }
+                PENULTIMATE_TO_SUCCEEDING_FREQ[signal.from]!!.add(BUTTON_COUNT)
+            }
+        }
     }
 
     companion object {
         val ALL_MODULES = mutableMapOf<String, Module>()
         val SIGNAL_QUEUE = ArrayDeque<Signal>()
+        var BUTTON_COUNT = 0L
+        val PENULTIMATE_TO_SUCCEEDING_FREQ = mutableMapOf<String, MutableList<Long>>()
 
         fun pushButton() {
+            BUTTON_COUNT += 1
             SIGNAL_QUEUE.addLast(Signal(SignalPolarity.LOW, BUTTON, BROADCASTER))
             while (SIGNAL_QUEUE.isNotEmpty()) {
                 val currentSignal = SIGNAL_QUEUE.removeFirst()
@@ -90,6 +122,7 @@ data class Broadcaster(
     override val dests: List<String>
 ) : Module {
     override fun processSignal(signal: Signal) {
+        super.processSignal(signal)
         dests.forEach { Module.SIGNAL_QUEUE.add(signal.copy(from = this.name, to = it)) }
     }
 }
@@ -100,6 +133,7 @@ data class FlipFlop(
     var polarity: Boolean = false
 ) : Module {
     override fun processSignal(signal: Signal) {
+        super.processSignal(signal)
         when (signal.polarity) {
             SignalPolarity.LOW -> {
                 polarity = !polarity
@@ -127,6 +161,7 @@ data class Conjunction(
     val inputs: MutableMap<String, SignalPolarity> = mutableMapOf()
 ) : Module {
     override fun processSignal(signal: Signal) {
+        super.processSignal(signal)
         inputs[signal.from] = signal.polarity
         val newPolarity =
             if (inputs.values.all { it == SignalPolarity.HIGH }) SignalPolarity.LOW else SignalPolarity.HIGH
@@ -140,5 +175,10 @@ data class Conjunction(
             )
         }
     }
-
 }
+
+/**
+ * This problem part 1 was really enjoyable OOP. I used help to see the trick to part 2 is via inspecting the input
+ *
+ * Overall super enjoyable problem
+ */
