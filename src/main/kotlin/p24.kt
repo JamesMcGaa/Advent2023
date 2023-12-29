@@ -153,7 +153,7 @@ fun main() {
 
 /**
  * Another tricky one. This numpy module in kotlin is cool though. Needed to note the trick that speeds are integer
- *  and that the additional velocity of the stone must evenly divide the gap between equal moving speeds
+ *  and that the additional velocity of the stone must evenly divide the gap between equal moving speeds. I needed help for this one
  *
  *  - Lots of clever observations and tricks here
  *
